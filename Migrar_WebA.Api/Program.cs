@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using Migrar_WebA.Api.DAL;
+
 namespace Migrar_WebA.Api
 {
     public class Program
@@ -13,6 +16,10 @@ namespace Migrar_WebA.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            var ConStr = builder.Configuration.GetConnectionString("ConStr");
+            builder.Services.AddDbContext<Contexto>(options => options.UseSqlite(ConStr));
+
 
             var app = builder.Build();
 
