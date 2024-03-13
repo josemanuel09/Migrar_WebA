@@ -89,13 +89,9 @@
 
     private async Task Guardar()
     {
-        if (await Validar(prioridades.Descripcion))
-        {
-            Existe = "Ya existe una prioridad con esa descripción";
-            return;
-        }
+        
 
-        var response = await httpClient.PostAsJsonAsync($"api/Prioridades", prioridades);
+        var response = await httpClient.PutAsJsonAsync($"api/Prioridades", prioridades);
         if (!response.IsSuccessStatusCode)
         {
             return;
@@ -103,11 +99,7 @@
         StateHasChanged();
     }
 
-    private async Task<bool> Validar(string descripcion)
-    {
-        var prioridad = await httpClient.GetFromJsonAsync<Prioridades>($"api/Prioridades/Descripcion/{descripcion}");
-        return prioridad != null;
-    }
+    
 
     public void Nuevo()
     {
