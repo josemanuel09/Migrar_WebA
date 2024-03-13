@@ -1,0 +1,127 @@
+﻿@page "/CreatePrioridades"
+@page "/CreatePrioridades/{PrioridadId:int}"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+
+<PageTitle>Registro de Prioridades</PageTitle>
+<EditForm Model="prioridades" OnValidSubmit="Guardar" FormName="prioridadForm">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3>Crear Prioridades</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6 col-xl-4">
+                        <label for="PrioridadId">Prioridad Id:</label>
+                        <div class="id-input">
+                            <InputNumber @bind-Value="prioridades.PrioridadId" class="form-control" aria-describedby="BotonBuscar" />
+
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="Descripcion">Descripci&oacute;n:</label>
+                    <InputText @bind-Value="prioridades.Descripcion" class="form-control" />
+                    <ValidationMessage For="@(() => prioridades.Descripcion)" />
+                </div>
+                @if (!string.IsNullOrEmpty(Existe))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @Existe
+                    </div>
+                }
+                
+                <div class="mb-3">
+                    <label class="form-label" for="DiasCompromiso">D&iacute;as Compromiso:</label>
+                    <InputNumber @bind-Value="prioridades.DiasCompromiso" class="form-control" />
+                    <ValidationMessage For="@(() => prioridades.DiasCompromiso)" />
+                </div>
+                
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-primary" @onclick="() => Guardar()">
+                    <span>Crear <i class="bi bi-file-earmark" /></span>
+                </button>
+                <a href="/Index" class="btn btn-secondary">
+                    <span>Volver a Consulta</span> <i class="bi bi-arrow-return-left" />
+                </a>
+            </div>
+
+        </div>
+    </div>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int PrioridadId { get; set; }
+    public Prioridades prioridades { get; set; } = new Prioridades();
+
+    public string Existe { get; set; } 
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (PrioridadId > 0)
+        {
+            this.prioridades.PrioridadId = PrioridadId;
+            await Buscar();
+        }
+    }
+    public async Task Buscar()
+    {
+        var prioridadEncontrada = (await httpClient.GetFromJsonAsync<List<Prioridades>>($"api/Prioridades"))!
+        .ToList()
+        .Any(p => p.PrioridadId == prioridades.PrioridadId);
+        if (prioridadEncontrada)
+        {
+            var prioridaddEncontrada = await httpClient.GetFromJsonAsync<Prioridades>($"api/Prioridades/{prioridades.PrioridadId}");
+            if (prioridaddEncontrada != null)
+            {
+                this.prioridades = prioridaddEncontrada;
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private async Task Guardar()
+    {
+        if (await Validar(prioridades.Descripcion))
+        {
+            Existe = "Ya existe una prioridad con esa descripción";
+            return;
+        }
+
+        var response = await httpClient.PostAsJsonAsync($"api/Prioridades", prioridades);
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        StateHasChanged();
+    }
+
+    private async Task<bool> Validar(string descripcion)
+    {
+        var prioridad = await httpClient.GetFromJsonAsync<Prioridades>($"api/Prioridades/Descripcion/{descripcion}");
+        return prioridad != null;
+    }
+
+    public void Nuevo()
+    {
+        prioridades = new Prioridades();
+    }
+    public async Task Eliminar()
+    {
+        var response = await httpClient.DeleteAsync($"api/Prioridades/{prioridades.PrioridadId}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        Nuevo();
+
+    }
+
+}
