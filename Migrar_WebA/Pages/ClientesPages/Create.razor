@@ -1,0 +1,166 @@
+﻿@page "/CreateClientes"
+@page "/CreateClientes/{ClienteId:int}"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+
+<PageTitle>Registro de Clientes</PageTitle>
+<EditForm Model="clientes" OnValidSubmit="Guardar" FormName="clienteForm">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card-header">
+            <h1>Create de Clientes</h1>
+        </div>
+        <div class="card-body">
+            <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6 col-xl-4">
+                <label for="ClienteId">Cliente Id:</label>
+                <div class="id-input">
+                    <InputNumber @bind-Value="clientes.ClienteId" class="form-control" aria-describedby="BotonBuscar" />
+
+                </div>
+            </div>
+           
+            @* @if (Encontrado)
+            {
+                <p class="text-danger">No se encontro el cliente</p>
+            } *@
+
+            <div class="col-md-6">
+                <label>Nombres:</label>
+                <InputText @bind-Value="clientes.Nombres" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Nombres)" />
+            </div>
+           @*  @if (nombreExistente)
+            {
+                <p class="text-danger">Ya existe un cliente con este nombre</p>
+            } *@
+
+
+            <div class="col-md-6">
+                <label>Email:</label>
+                <InputText type="email" @bind-Value="clientes.Email" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Email)" />
+            </div>
+
+            <div class="col-md-6">
+                <label>RNC</label>
+                <InputText @bind-Value="clientes.Rnc" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Rnc)" />
+                @* @if (rncExistente)
+                {
+                    <p class="text-danger">Ya existe un cliente con este RNC</p>
+                } *@
+            </div>
+
+            <div class="col-md-6">
+                <label>Direcci&oacute;n:</label>
+                <InputText @bind-Value="clientes.Direccion" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Direccion)" />
+            </div>
+
+
+            <div class="col-md-6">
+                <label>Telefono:</label>
+                <InputText @bind-Value="clientes.Telefono" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Telefono)" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Celular:</label>
+                <InputText @bind-Value="clientes.Celular" class="form-control"></InputText>
+                <ValidationMessage For="@(() => clientes.Celular)" />
+            </div>
+
+
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-primary" @onclick="() => Guardar()">
+                <span>Crear <i class="bi bi-file-earmark" /></span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='/DetailsClientes'">
+                <span>Volver a Consulta</span> <i class="bi bi-arrow-return-left" />
+            </button>
+        </div>
+
+        @* @if (Eliminado)
+        {
+            <p class="text-success">Se elimino el cliente correctamente</p>
+
+
+        }
+
+        @if (Guardado)
+        {
+            <p class="text-success">Se guardo el cliente correctamente</p>
+        } *@
+    </div>
+
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int ClienteId { get; set; }
+    public Clientes clientes { get; set; } = new Clientes();
+
+    public string Existe { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ClienteId > 0)
+        {
+            this.clientes.ClienteId = ClienteId;
+            await Buscar();
+        }
+    }
+    public async Task Buscar()
+    {
+        var clienteEncontrado = (await httpClient.GetFromJsonAsync<List<Clientes>>($"api/Clientes"))!
+        .ToList()
+        .Any(p => p.ClienteId == clientes.ClienteId);
+        if (clienteEncontrado)
+        {
+            var clienteeEncontrado = await httpClient.GetFromJsonAsync<Clientes>($"api/Clientes/{clientes.ClienteId}");
+            if (clienteeEncontrado != null)
+            {
+                this.clientes = clienteeEncontrado;
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private async Task Guardar()
+    {
+        
+        var response = await httpClient.PostAsJsonAsync($"api/Clientes", clientes);
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        StateHasChanged();
+        Atras();
+    }
+   
+
+
+    public void Nuevo()
+    {
+        clientes = new Clientes();
+    }
+    public async Task Eliminar()
+    {
+        var response = await httpClient.DeleteAsync($"api/Prioridades/{clientes.ClienteId}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        Nuevo();
+
+    }
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("/IndexClientes");
+    }
+}
