@@ -33,13 +33,13 @@
                         @Existe
                     </div>
                 }
-                
+
                 <div class="mb-3">
                     <label class="form-label" for="DiasCompromiso">D&iacute;as Compromiso:</label>
                     <InputNumber @bind-Value="prioridades.DiasCompromiso" class="form-control" />
                     <ValidationMessage For="@(() => prioridades.DiasCompromiso)" />
                 </div>
-                
+
             </div>
             <div class="card-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-primary" @onclick="() => Guardar()">
@@ -60,7 +60,7 @@
     public int PrioridadId { get; set; }
     public Prioridades prioridades { get; set; } = new Prioridades();
 
-    public string Existe { get; set; } 
+    public string Existe { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,18 +89,27 @@
 
     private async Task Guardar()
     {
-        
-
-        var response = await httpClient.PutAsJsonAsync($"api/Prioridades", prioridades);
+        var descripcionExistente = await Validar(prioridades.Descripcion);
+        if (descripcionExistente)
+        {
+            Existe = "La descripción ya está en uso. Intente con una diferente.";
+            return;
+        }
+        var response = await httpClient.PostAsJsonAsync($"api/Prioridades", prioridades);
         if (!response.IsSuccessStatusCode)
         {
             return;
         }
         StateHasChanged();
+        Atras();
+    }
+    private async Task<bool> Validar(string descripcion)
+    {
+        var prioridades = await httpClient.GetFromJsonAsync<List<Prioridades>>("api/Prioridades");
+        return prioridades.Any(p => p.Descripcion == descripcion);
     }
 
-    
-
+   
     public void Nuevo()
     {
         prioridades = new Prioridades();
@@ -114,6 +123,11 @@
         }
         Nuevo();
 
+    }
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("/Index");
     }
 
 }
