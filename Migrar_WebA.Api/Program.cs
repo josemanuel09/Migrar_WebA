@@ -29,6 +29,13 @@ namespace Migrar_WebA.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            //CORS
+            app.UseCors(options =>
+            {
+                options.AllowAnyOrigin();
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+            });
 
             app.UseHttpsRedirection();
 
