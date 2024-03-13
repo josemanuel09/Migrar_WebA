@@ -1,0 +1,124 @@
+﻿@page "/IndexClientes"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+
+<div class="card shadow-lg">
+    <div style="background-color: #5F5D9C; color: white;" class="card-header">
+        <h3>&Iacute;ndex de Clientes</h3>
+    </div>
+
+    <div class="card-body">
+        <label>Filtrar Por</label>
+        <div class="row">
+            <div class="col-3">
+                <InputSelect @bind-Value="Opcion" class="form-select">
+                    <option value="0">Todo</option>
+                    <option value="1">Cliente ID</option>
+                    <option value="2">Nombres</option>
+                </InputSelect>
+            </div>
+            <div class="col-3">
+                @if (Opcion == 1)
+                {
+                    <div class="input-group">
+                        <InputNumber @bind-Value="clientes.ClienteId" class="form-control"></InputNumber>
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+                else if (Opcion == 2)
+                {
+                    <div class="input-group">
+                        <InputText @bind-Value="clientes.Nombres" class="form-control"></InputText>
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+                else if (Opcion == 0)
+                {
+                    <div class="input-group">
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3 d-flex justify-content-end">
+                <a href="CreateClientes" class="btn btn-success bi-floppy-fill">Create</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr bgcolor="5F5D9C">
+                    <th>Cliente ID</th>
+                    <th>Nombres</th>
+                    <th>Email</th>
+                    <th>RNC</th>
+                    <th>Direcci&oacute;n</th>
+                    <th>Telefono</th>
+                    <th>Celular</th>
+                    <th>Ver</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in listaClientes)
+                {
+                    <tr>
+                        <td>@cliente.ClienteId</td>
+                        <td>@cliente.Nombres</td>
+                        <td>@cliente.Email</td>
+                        <td>@cliente.Rnc</td>
+                        <td>@cliente.Direccion</td>
+                        <td>@cliente.Telefono</td>
+                        <td>@cliente.Celular</td>
+                        <td>
+                            <div style="text-align:center">
+                                <a href="DetailsClientes/@cliente.ClienteId" class="btn btn-outline-primary bi bi-eye"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="CreateClientes/@cliente.ClienteId" class="btn btn-outline-warning bi bi-pencil"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="DeleteClientes/@cliente.ClienteId" class="btn btn-outline-danger bi bi-trash-fill"></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public List<Clientes> listaClientes { get; set; } = new List<Clientes>();
+    public Clientes clientes { get; set; } = new Clientes();
+    public int Opcion { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaClientes = await httpClient.GetFromJsonAsync<List<Clientes>>("api/Clientes");
+    }
+
+    public async Task Buscar()
+    {
+        if (Opcion == 1 && clientes.ClienteId > 0)
+        {
+            listaClientes = (await httpClient.GetFromJsonAsync<List<Clientes>>($"api/Clientes"))!.Where(c => c.ClienteId == clientes.ClienteId).ToList();
+            StateHasChanged();
+        }
+        else if (Opcion == 2 && !string.IsNullOrEmpty(clientes.Nombres))
+        {
+            listaClientes = (await httpClient.GetFromJsonAsync<List<Clientes>>($"api/Clientes"))!.Where(c => c.Nombres!.ToLower() == clientes.Nombres.ToLower()).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            listaClientes = await httpClient.GetFromJsonAsync<List<Clientes>>($"api/Clientes");
+            StateHasChanged();
+        }
+    }
+}
