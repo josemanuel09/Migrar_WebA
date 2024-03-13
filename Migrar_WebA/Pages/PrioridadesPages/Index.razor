@@ -1,0 +1,117 @@
+﻿@page "/Index"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime js
+
+<div class="card shadow-lg">
+    <div style="background-color: #5F5D9C; color: white;" class="card-header">
+        <h3>&Iacute;ndex de Prioridades</h3>
+    </div>
+
+    <div class="card-body">
+        <label>Filtrar Por</label>
+        <div class="row">
+            <div class="col-3">
+                <InputSelect @bind-Value="Opcion" class="form-select">
+                    <option value="0">Todo</option>
+                    <option value="1">PrioridadId</option>
+                    <option value="2">Descripci&oacute;n</option>
+                </InputSelect>
+            </div>
+            <div class="col-3">
+                @if (Opcion == 1)
+                {
+                    <div class="input-group">
+                        <InputNumber @bind-Value="prioridades.PrioridadId" class="form-control"></InputNumber>
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+                else if (Opcion == 2)
+                {
+                    <div class="input-group">
+                        <InputText @bind-Value="prioridades.Descripcion" class="form-control"></InputText>
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+                else if (Opcion == 0)
+                {
+                    <div class="input-group">
+                        <button type="button" @onclick="Buscar" class="btn btn-primary bi bi-search"></button>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3 d-flex justify-content-end">
+                <a href="CreatePrioridades" class="btn btn-success bi-floppy-fill">Create</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr bgcolor="5F5D9C">
+                    <th>Prioridad Id</th>
+                    <th>Descripci&oacute;n</th>
+                    <th>D&iacute;as Compromiso</th>
+                    <th>Ver</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var prioridad in listaPrioridades)
+                {
+                    <tr>
+                        <td>@prioridad.PrioridadId</td>
+                        <td>@prioridad.Descripcion</td>
+                        <td>@prioridad.DiasCompromiso</td>
+                        <td>
+                            <div style="text-align:center">
+                                <a href="DetailsPrioridades/@prioridad.PrioridadId" class="btn btn-outline-primary bi bi-eye"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="CreatePrioridades/@prioridad.PrioridadId" class="btn btn-outline-warning bi bi-pencil"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="DeletePrioridades/@prioridad.PrioridadId" class="btn btn-outline-danger bi bi-trash-fill"></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public List<Prioridades> listaPrioridades { get; set; } = new List<Prioridades>();
+    public Prioridades prioridades { get; set; } = new Prioridades();
+    public int Opcion { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaPrioridades = await httpClient.GetFromJsonAsync<List<Prioridades>>("api/Prioridades");
+    }
+
+    public async Task Buscar()
+    {
+        if (Opcion == 1 && prioridades.PrioridadId > 0)
+        {
+            listaPrioridades = (await httpClient.GetFromJsonAsync<List<Prioridades>>($"api/Prioridades"))!.Where(p => p.PrioridadId == prioridades.PrioridadId).ToList();
+            StateHasChanged();
+        }
+        else if (Opcion == 2 && !string.IsNullOrEmpty(prioridades.Descripcion))
+        {
+            listaPrioridades = (await httpClient.GetFromJsonAsync<List<Prioridades>>($"api/Prioridades"))!.Where(p => p.Descripcion!.ToLower() == prioridades.Descripcion.ToLower()).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            listaPrioridades = await httpClient.GetFromJsonAsync<List<Prioridades>>($"api/Prioridades");
+            StateHasChanged();
+        }
+    }
+}
