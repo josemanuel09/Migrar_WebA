@@ -42,6 +42,22 @@ namespace Migrar_WebA.Api.Controllers
             return prioridades;
         }
 
+        // GET: api/Prioridades/Descripcion/5
+        [HttpGet("Descripcion/{descripcion}")]
+        public async Task<ActionResult<Prioridades>> GetPrioridadesPorDescripcion(string descripcion)
+        {
+            var prioridad = await _context.Prioridades.FirstOrDefaultAsync(p => p.Descripcion == descripcion);
+
+            if (prioridad == null)
+            {
+                return NotFound();
+            }
+
+            return prioridad;
+        }
+
+
+
         // PUT: api/Prioridades/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
