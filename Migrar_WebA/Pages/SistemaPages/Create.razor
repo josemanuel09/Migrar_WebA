@@ -1,0 +1,108 @@
+﻿@page "/CreateSistema"
+@page "/CreateSistema/{SistemaId:int}"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+
+<EditForm Model="sistemas" OnValidSubmit="Guardar" FormName="sistemaForm">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3>Crear Sistema</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6 col-xl-4">
+                        <label for="SistemaId">Sistema Id:</label>
+                        <div class="id-input">
+                            <InputNumber @bind-Value="sistemas.SistemaId" class="form-control" aria-describedby="BotonBuscar" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="NombreSistema">Nombre del Sistema:</label>
+                    <InputText @bind-Value="sistemas.NombreSistema" class="form-control" />
+                    <ValidationMessage For="@(() => sistemas.NombreSistema)" />
+                </div>
+               
+                
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-primary" @onclick="() => Guardar()">
+                    <span>Crear <i class="bi bi-file-earmark" /></span>
+                </button>
+                <a href="/IndexSistemas" class="btn btn-secondary">
+                    <span>Volver a Consulta</span><i class="bi bi-arrow-return-left" />
+                </a>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int SistemaId { get; set; }
+    public Sistemas sistemas { get; set; } = new Sistemas();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SistemaId > 0)
+        {
+            this.sistemas.SistemaId = SistemaId;
+            await Buscar();
+        }
+    }
+    public async Task Buscar()
+    {
+        var sistemaEncontrado = (await httpClient.GetFromJsonAsync<List<Sistemas>>($"api/Sistemas"))!
+        .ToList()
+        .Any(p => p.SistemaId == sistemas.SistemaId);
+        if (sistemaEncontrado)
+        {
+            var sistemadEncontrada = await httpClient.GetFromJsonAsync<Sistemas>($"api/Sistemas/{sistemas.SistemaId}");
+            if (sistemadEncontrada != null)
+            {
+                this.sistemas = sistemadEncontrada;
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private async Task Guardar()
+    {
+        
+        var response = await httpClient.PostAsJsonAsync($"api/Sistemas", sistemas);
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        StateHasChanged();
+        Atras();
+    }
+   
+
+
+    public void Nuevo()
+    {
+        sistemas = new Sistemas();
+    }
+    public async Task Eliminar()
+    {
+        var response = await httpClient.DeleteAsync($"api/Sistemas/{sistemas.SistemaId}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        Nuevo();
+
+    }
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("/IndexSistemas");
+    }
+
+
+}
