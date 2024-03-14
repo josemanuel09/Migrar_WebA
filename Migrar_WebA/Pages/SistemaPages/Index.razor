@@ -1,0 +1,98 @@
+﻿@page "/IndexSistemas"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+
+<div class="card shadow-lg">
+    <div style="background-color: #5F5D9C; color: white;" class="card-header">
+        <h3>&Iacute;ndice de Sistemas</h3>
+    </div>
+
+    <div class="card-body">
+        <label>Filtrar Por</label>
+        <div class="row">
+            <div class="col-3">
+                <InputText @bind-Value="filtro" class="form-control" placeholder="Buscar por nombre" />
+            </div>
+
+            <div class="mb-3 d-flex justify-content-end">
+                <a href="CreateSistema" class="btn btn-success bi-floppy-fill">Crear</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr bgcolor="5F5D9C">
+                    <th>Sistema Id</th>
+                    <th>Nombre del Sistema</th>
+                    <th>Ver</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sistema in listaSistemas)
+                {
+                    <tr>
+                        <td>@sistema.SistemaId</td>
+                        <td>@sistema.NombreSistema</td>
+                        <td>
+                            <div style="text-align:center">
+                                <a href="DetailsSistema/@sistema.SistemaId" class="btn btn-outline-primary bi bi-eye"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="CreateSistema/@sistema.SistemaId" class="btn btn-outline-warning bi bi-pencil"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <button @onclick="() => Eliminar(sistema.SistemaId)" class="btn btn-outline-danger bi bi-trash-fill"></button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public List<Sistemas> listaSistemas { get; set; } = new List<Sistemas>();
+    public string filtro { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarSistemas();
+    }
+
+    private async Task CargarSistemas()
+    {
+        if (string.IsNullOrEmpty(filtro))
+        {
+            listaSistemas = await httpClient.GetFromJsonAsync<List<Sistemas>>("api/Sistemas");
+        }
+        else
+        {
+            listaSistemas = await httpClient.GetFromJsonAsync<List<Sistemas>>($"api/Sistemas?nombre={filtro}");
+        }
+    }
+
+    public async Task Eliminar(int sistemaId)
+    {
+        var confirmacion = await jsRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres eliminar este sistema?");
+        if (confirmacion)
+        {
+            var response = await httpClient.DeleteAsync($"api/Sistemas/{sistemaId}");
+            if (response.IsSuccessStatusCode)
+            {
+                await CargarSistemas();
+            }
+            else
+            {
+                // Manejar el error si es necesario
+            }
+        }
+    }
+}
