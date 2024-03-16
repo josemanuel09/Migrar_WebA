@@ -1,0 +1,51 @@
+﻿@page "/DetailsTicket/{TicketId:int}"
+@inject HttpClient httpClient
+
+<PageTitle>Detalles del Ticket</PageTitle>
+
+@if (ticket == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <div class="card shadow">
+        <div class="card-header">
+            <h3>Detalles del Ticket</h3>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <p>- Ticket ID: @ticket.TicketId</p>
+                    <p>- Fecha: @ticket.Fecha</p>
+                    <p>- Cliente ID: @ticket.ClienteId</p>
+                    <p>- Sistema ID: @ticket.SistemaId</p>
+                    <p>- Prioridad ID: @ticket.PrioridadId</p>
+                    <p>- Solicitado por: @ticket.SolicitadoPor</p>
+                    <p>- Asunto: @ticket.Asunto</p>
+                    <p>- Descripción: @ticket.Descripcion</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="/IndexTickets" class="btn btn-secondary bi bi-arrow-left-square-fill ms-auto">Volver</a>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public int TicketId { get; set; }
+    public Tickets ticket { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTicket();
+    }
+
+    private async Task CargarTicket()
+    {
+        ticket = await httpClient.GetFromJsonAsync<Tickets>($"api/Tickets/{TicketId}");
+    }
+}
