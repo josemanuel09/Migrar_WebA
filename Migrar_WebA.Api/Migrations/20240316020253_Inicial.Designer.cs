@@ -11,7 +11,7 @@ using Migrar_WebA.Api.DAL;
 namespace Migrar_WebA.Api.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20240313193538_Inicial")]
+    [Migration("20240316020253_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
