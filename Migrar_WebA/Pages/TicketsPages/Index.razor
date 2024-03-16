@@ -1,0 +1,107 @@
+﻿@page "/IndexTickets"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+
+<div class="card shadow-lg">
+    <div style="background-color: #5F5D9C; color: white;" class="card-header">
+        <h3>&Iacute;ndice de Tickets</h3>
+    </div>
+
+    <div class="card-body">
+        <label>Filtrar Por</label>
+        <div class="row">
+            <div class="col-3">
+                <InputText @bind-Value="filtro" class="form-control" placeholder="Buscar por asunto" />
+            </div>
+
+            <div class="mb-3 d-flex justify-content-end">
+                <a href="CreateTicket" class="btn btn-success bi-floppy-fill">Crear</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr bgcolor="5F5D9C">
+                    <th>Ticket Id</th>
+                    <th>Fecha</th>
+                    <th>Cliente Id</th>
+                    <th>Sistema Id</th>
+                    <th>Prioridad Id</th>
+                    <th>Solicitado Por</th>
+                    <th>Asunto</th>
+                    <th>Ver</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ticket in listaTickets)
+                {
+                    <tr>
+                        <td>@ticket.TicketId</td>
+                        <td>@ticket.Fecha</td>
+                        <td>@ticket.ClienteId</td>
+                        <td>@ticket.SistemaId</td>
+                        <td>@ticket.PrioridadId</td>
+                        <td>@ticket.SolicitadoPor</td>
+                        <td>@ticket.Asunto</td>
+                        <td>
+                            <div style="text-align:center">
+                                <a href="DetailsTicket/@ticket.TicketId" class="btn btn-outline-primary bi bi-eye"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="EditTicket/@ticket.TicketId" class="btn btn-outline-warning bi bi-pencil"></a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-align: center;">
+                                <a href="DeleteTicket/@ticket.TicketId" class="btn btn-outline-danger bi bi-trash"></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public List<Tickets> listaTickets { get; set; } = new List<Tickets>();
+    public string filtro { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTickets();
+    }
+
+    private async Task CargarTickets()
+    {
+        if (string.IsNullOrEmpty(filtro))
+        {
+            listaTickets = await httpClient.GetFromJsonAsync<List<Tickets>>("api/Tickets");
+        }
+        else
+        {
+            listaTickets = await httpClient.GetFromJsonAsync<List<Tickets>>($"api/Tickets?asunto={filtro}");
+        }
+    }
+
+    public async Task Eliminar(int ticketId)
+    {
+        var confirmacion = await jsRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres eliminar este ticket?");
+        if (confirmacion)
+        {
+            var response = await httpClient.DeleteAsync($"api/Tickets/{ticketId}");
+            if (response.IsSuccessStatusCode)
+            {
+                await CargarTickets();
+            }
+            else
+            {
+            }
+        }
+    }
+}
