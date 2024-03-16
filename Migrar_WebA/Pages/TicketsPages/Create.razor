@@ -1,0 +1,138 @@
+﻿@page "/CreateTicket"
+@inject HttpClient httpClient
+@inject NavigationManager navigationManager
+
+@inject IJSRuntime jsRuntime
+
+<PageTitle>Crear Ticket</PageTitle>
+<EditForm Model="ticket" OnValidSubmit="GuardarTicket">
+    <DataAnnotationsValidator />
+
+    <div class="container">
+        <div class="card-header">
+            <h1>Crear Ticket</h1>
+        </div>
+
+        <div class="card-body">
+            <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6 col-xl-4">
+                <label for="ClienteId">Cliente Id:</label>
+                <div class="id-input">
+                    <InputNumber @bind-Value="ticket.TicketId" class="form-control" aria-describedby="BotonBuscar" />
+
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="Fecha">Fecha:</label>
+                <InputDate @bind-Value="ticket.Fecha" class="form-control" />
+                <ValidationMessage For="@(() => ticket.Fecha)" />
+            </div>
+
+            <div class="form-group">
+                <label for="ClienteId">Cliente:</label>
+                <select @bind="ticket.ClienteId" class="form-control">
+                    <option value="">Seleccionar cliente...</option>
+                    @foreach (var cliente in clientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombres</option>
+                    }
+                </select>
+                <ValidationMessage For="@(() => ticket.ClienteId)" />
+            </div>
+
+            <div class="form-group">
+                <label for="SistemaId">Sistema:</label>
+                <select @bind="ticket.SistemaId" class="form-control">
+                    <option value="">Seleccionar sistema...</option>
+                    @foreach (var sistema in sistemas)
+                    {
+                        <option value="@sistema.SistemaId">@sistema.NombreSistema</option>
+                    }
+                </select>
+                <ValidationMessage For="@(() => ticket.SistemaId)" />
+            </div>
+
+            <div class="form-group">
+                <label for="PrioridadId">Prioridad:</label>
+                <select @bind="ticket.PrioridadId" class="form-control">
+                    <option value="">Seleccionar prioridad...</option>
+                    @foreach (var prioridad in prioridades)
+                    {
+                        <option value="@prioridad.PrioridadId">@prioridad.PrioridadId</option>
+                    }
+                </select>
+                <ValidationMessage For="@(() => ticket.PrioridadId)" />
+            </div>
+
+            <div class="form-group">
+                <label for="SolicitadoPor">Solicitado por:</label>
+                <InputText @bind-Value="ticket.SolicitadoPor" class="form-control" />
+                <ValidationMessage For="@(() => ticket.SolicitadoPor)" />
+            </div>
+
+            <div class="form-group">
+                <label for="Asunto">Asunto:</label>
+                <InputText @bind-Value="ticket.Asunto" class="form-control" />
+                <ValidationMessage For="@(() => ticket.Asunto)" />
+            </div>
+
+            <div class="form-group">
+                <label for="Descripcion">Descripción:</label>
+                <InputText @bind-Value="ticket.Descripcion" class="form-control" />
+                <ValidationMessage For="@(() => ticket.Descripcion)" />
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Crear Ticket</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Tickets ticket = new Tickets();
+    private List<Clientes> clientes = new List<Clientes>();
+    private List<Sistemas> sistemas = new List<Sistemas>();
+    private List<Prioridades> prioridades = new List<Prioridades>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarClientes();
+        await CargarSistemas();
+        await CargarPrioridades();
+    }
+
+    private async Task CargarClientes()
+    {
+        clientes = await httpClient.GetFromJsonAsync<List<Clientes>>("api/Clientes");
+    }
+
+    private async Task CargarSistemas()
+    {
+        sistemas = await httpClient.GetFromJsonAsync<List<Sistemas>>("api/Sistemas");
+    }
+
+    private async Task CargarPrioridades()
+    {
+        prioridades = await httpClient.GetFromJsonAsync<List<Prioridades>>("api/Prioridades");
+    }
+
+    private async Task GuardarTicket()
+    {
+        var response = await httpClient.PostAsJsonAsync("api/Tickets", ticket);
+        if (response.IsSuccessStatusCode)
+        {
+            navigationManager.NavigateTo("/IndexTickets");
+        }
+        else
+        {
+            await jsRuntime.InvokeVoidAsync("alert", "Error al guardar el ticket.");
+        }
+    }
+
+    private void Cancelar()
+    {
+        navigationManager.NavigateTo("/IndexTickets");
+    }
+}
