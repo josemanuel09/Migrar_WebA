@@ -132,7 +132,7 @@
     private async Task Guardar()
     {
 
-        var response = await httpClient.PutAsJsonAsync($"api/Clientes", clientes);
+        var response = await httpClient.PutAsJsonAsync($"api/Clientes/{clientes.ClienteId}", clientes);
         if (!response.IsSuccessStatusCode)
         {
             return;
@@ -149,7 +149,7 @@
     }
     public async Task Eliminar()
     {
-        var response = await httpClient.DeleteAsync($"api/Prioridades/{clientes.ClienteId}");
+        var response = await httpClient.DeleteAsync($"api/Clientes/{clientes.ClienteId}");
         if (!response.IsSuccessStatusCode)
         {
             return;

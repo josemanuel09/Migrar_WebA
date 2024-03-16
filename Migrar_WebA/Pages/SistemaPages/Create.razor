@@ -73,7 +73,7 @@
     private async Task Guardar()
     {
         
-        var response = await httpClient.PostAsJsonAsync($"api/Sistemas", sistemas);
+        var response = await httpClient.PutAsJsonAsync($"api/Sistemas/{sistemas.SistemaId}", sistemas);
         if (!response.IsSuccessStatusCode)
         {
             return;
