@@ -60,7 +60,7 @@
 
 
             <div class="col-md-6">
-                <label>Telefono:</label>
+                <label>Tel&eacute;fono:</label>
                 <InputText @bind-Value="clientes.Telefono" class="form-control"></InputText>
                 <ValidationMessage For="@(() => clientes.Telefono)" />
             </div>
@@ -82,17 +82,7 @@
             </button>
         </div>
 
-        @* @if (Eliminado)
-        {
-        <p class="text-success">Se elimino el cliente correctamente</p>
-
-
-        }
-
-        @if (Guardado)
-        {
-        <p class="text-success">Se guardo el cliente correctamente</p>
-        } *@
+       
     </div>
 
 </EditForm>

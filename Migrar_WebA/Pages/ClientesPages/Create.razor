@@ -20,20 +20,18 @@
                 </div>
             </div>
            
-            @* @if (Encontrado)
-            {
-                <p class="text-danger">No se encontro el cliente</p>
-            } *@
-
+           
             <div class="col-md-6">
                 <label>Nombres:</label>
                 <InputText @bind-Value="clientes.Nombres" class="form-control"></InputText>
                 <ValidationMessage For="@(() => clientes.Nombres)" />
             </div>
-           @*  @if (nombreExistente)
+           @if (!string.IsNullOrEmpty(MensajeError))
             {
-                <p class="text-danger">Ya existe un cliente con este nombre</p>
-            } *@
+                <div class="alert alert-danger" role="alert">
+                    @MensajeError
+                </div>
+            }
 
 
             <div class="col-md-6">
@@ -46,10 +44,12 @@
                 <label>RNC</label>
                 <InputText @bind-Value="clientes.Rnc" class="form-control"></InputText>
                 <ValidationMessage For="@(() => clientes.Rnc)" />
-                @* @if (rncExistente)
+                @if (!string.IsNullOrEmpty(MensajeError))
                 {
-                    <p class="text-danger">Ya existe un cliente con este RNC</p>
-                } *@
+                    <div class="alert alert-danger" role="alert">
+                        @MensajeError
+                    </div>
+                }
             </div>
 
             <div class="col-md-6">
@@ -82,17 +82,7 @@
             </button>
         </div>
 
-        @* @if (Eliminado)
-        {
-            <p class="text-success">Se elimino el cliente correctamente</p>
-
-
-        }
-
-        @if (Guardado)
-        {
-            <p class="text-success">Se guardo el cliente correctamente</p>
-        } *@
+       
     </div>
 
 </EditForm>
@@ -104,6 +94,7 @@
     public Clientes clientes { get; set; } = new Clientes();
 
     public string Existe { get; set; }
+    public string MensajeError { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,6 +123,12 @@
 
     private async Task Guardar()
     {
+        var nombreExistente = await Validar(clientes.Nombres, clientes.Rnc);
+        if (nombreExistente)
+        {
+            MensajeError = "El nombre o el RNC ya está en uso. Intente con uno diferente.";
+            return;
+        }
         
         var response = await httpClient.PostAsJsonAsync($"api/Clientes", clientes);
         if (!response.IsSuccessStatusCode)
@@ -140,6 +137,12 @@
         }
         StateHasChanged();
         Atras();
+    }
+    private async Task<bool> Validar(string nombre, string rnc)
+    {
+        var clientes = await httpClient.GetFromJsonAsync<List<Clientes>>("api/Clientes");
+        return clientes.Any(p => p.Nombres == nombre || p.Rnc == rnc);
+
     }
    
 
