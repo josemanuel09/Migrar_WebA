@@ -13,7 +13,7 @@ namespace Migrar_WebA.Shared.Models
         [Key]
         public int TicketId { get; set; }
         [Required(ErrorMessage = "El campo es obligatorio")]
-        public DateTime Fecha { get; set; }
+        public DateTime Fecha { get; set; } = DateTime.Now;
         [Required(ErrorMessage = "El campo es obligatorio")]
         [ForeignKey("ClienteId")]
         public int ClienteId { get; set; }
